@@ -1,0 +1,14 @@
+flowchart TD
+  A[Open app] --> B[Select role: installer or surveyor]
+  B --> C[Enter customer postcode]
+  C --> D{Valid postcode?}
+  D -- No --> E[Show inline error] --> C
+  D -- Yes --> F[Find covering teams, rank by drive time]
+  F --> G{Any teams found?}
+  G -- No --> H[No coverage state, show nearest anyway]
+  G -- Yes --> I[Ranked list and map]
+  I --> J[Pick top team]
+  J --> K[Check TeamUp]
+  K --> L{Team available?}
+  L -- No --> M[Try next team] --> J
+  L -- Yes --> N[Book the job]
