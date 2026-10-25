@@ -1,40 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Team Coverage App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Team Coverage</title>
+  <meta name="description" content="Find the nearest installer or surveyor to a customer's postcode." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <header>
-    <h1>Team Coverage</h1>
-  </header>
 
-  <main>
-    <section id="controls">
-      <label for="role">Role</label>
-      <select id="role">
-        <option value="">Select a role…</option>
-        <option value="installer">Installer</option>
-        <option value="surveyor">Surveyor</option>
-      </select>
+  <!-- Step 1: role picker -->
+  <section class="landing" id="landing" aria-labelledby="ask">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span>Team Coverage</div>
+    <h1 class="ask" id="ask">I'm looking for a
+      <span class="choices">
+        <button class="role-btn" data-role="surveyor">Surveyor</button>
+        <button class="role-btn" data-role="installer">Installer</button>
+      </span>
+    </h1>
+    <p>Pick a role, then enter the customer's postcode to see who's closest.</p>
+    <div class="count" id="landing-count"></div>
+  </section>
 
-      <label for="postcode">Customer postcode</label>
-      <input id="postcode" type="text" placeholder="e.g. SW1A 1AA" />
-      <span id="postcode-error" class="error" hidden></span>
+  <!-- Step 2: list + map -->
+  <main class="app">
+    <aside class="panel" aria-label="Team list">
+      <div class="panel-head">
+        <div class="row">
+          <div class="seg" role="group" aria-label="Role">
+            <button data-role="surveyor" aria-pressed="false">Surveyors</button>
+            <button data-role="installer" aria-pressed="false">Installers</button>
+          </div>
+          <button class="restart" id="restart">Start over</button>
+        </div>
+        <div>
+          <label class="lbl" for="postcode">Customer's postcode</label>
+          <div class="field" id="postcode-field">
+            <input id="postcode" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="e.g. BS1 4DJ" maxlength="9" aria-describedby="postcode-hint" />
+            <span class="state" aria-hidden="true"></span>
+          </div>
+          <div class="hint" id="postcode-hint" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="list-head"><span id="list-title">Surveyors</span><span id="list-sort">A–Z</span></div>
+      <ul class="list" id="team-list"></ul>
+      <p class="foot" id="footnote" aria-live="polite"></p>
+    </aside>
 
-      <button id="search-btn">Find teams</button>
-    </section>
-
-    <section id="results" hidden>
-      <div id="team-list"></div>
-      <div id="map"></div>
-    </section>
+    <div class="map-wrap">
+      <div id="map" role="region" aria-label="Map of team locations"></div>
+      <div class="map-empty" id="map-empty">Type a postcode to find the nearest team</div>
+    </div>
   </main>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="js/app.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

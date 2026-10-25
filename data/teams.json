@@ -1,50 +1,17 @@
 [
-  {
-    "id": "team-001",
-    "name": "Apex Installs North",
-    "role": "installer",
-    "basePostcode": "M2 3BQ",
-    "baseLat": 53.4808,
-    "baseLng": -2.2426
-  },
-  {
-    "id": "team-002",
-    "name": "Summit Survey Co.",
-    "role": "surveyor",
-    "basePostcode": "LS1 4DY",
-    "baseLat": 53.7996,
-    "baseLng": -1.5491
-  },
-  {
-    "id": "team-003",
-    "name": "Meridian Field Teams",
-    "role": "both",
-    "basePostcode": "B3 2HH",
-    "baseLat": 52.4862,
-    "baseLng": -1.8904
-  },
-  {
-    "id": "team-004",
-    "name": "Coastal Works SW",
-    "role": "installer",
-    "basePostcode": "BS1 4ST",
-    "baseLat": 51.4545,
-    "baseLng": -2.5879
-  },
-  {
-    "id": "team-005",
-    "name": "Cairn Survey Scotland",
-    "role": "surveyor",
-    "basePostcode": "EH2 2AF",
-    "baseLat": 55.9533,
-    "baseLng": -3.1883
-  },
-  {
-    "id": "team-006",
-    "name": "Thames Valley Ops",
-    "role": "both",
-    "basePostcode": "RG1 1QH",
-    "baseLat": 51.4543,
-    "baseLng": -0.9781
-  }
+  { "id": "tm-01", "name": "Dan Whitlock",  "role": "installer", "town": "Bristol",     "basePostcode": "BS5",  "baseLat": 51.462, "baseLng": -2.560 },
+  { "id": "tm-02", "name": "Priya Shah",    "role": "surveyor",  "town": "Reading",     "basePostcode": "RG1",  "baseLat": 51.455, "baseLng": -0.971 },
+  { "id": "tm-03", "name": "Tom Brennan",   "role": "both",      "town": "Birmingham",  "basePostcode": "B23",  "baseLat": 52.528, "baseLng": -1.840 },
+  { "id": "tm-04", "name": "Kasia Nowak",   "role": "surveyor",  "town": "Manchester",  "basePostcode": "M20",  "baseLat": 53.430, "baseLng": -2.230 },
+  { "id": "tm-05", "name": "Lee Armstrong", "role": "installer", "town": "Leeds",       "basePostcode": "LS12", "baseLat": 53.790, "baseLng": -1.590 },
+  { "id": "tm-06", "name": "Gareth Price",  "role": "installer", "town": "Cardiff",     "basePostcode": "CF14", "baseLat": 51.510, "baseLng": -3.200 },
+  { "id": "tm-07", "name": "Fiona MacLeod", "role": "surveyor",  "town": "Glasgow",     "basePostcode": "G41",  "baseLat": 55.835, "baseLng": -4.280 },
+  { "id": "tm-08", "name": "Sam Okafor",    "role": "installer", "town": "Croydon",     "basePostcode": "CR0",  "baseLat": 51.372, "baseLng": -0.100 },
+  { "id": "tm-09", "name": "Hannah Reid",   "role": "both",      "town": "Exeter",      "basePostcode": "EX2",  "baseLat": 50.710, "baseLng": -3.510 },
+  { "id": "tm-10", "name": "Mark Delaney",  "role": "installer", "town": "Newcastle",   "basePostcode": "NE6",  "baseLat": 54.975, "baseLng": -1.570 },
+  { "id": "tm-11", "name": "Jess Cole",     "role": "surveyor",  "town": "Norwich",     "basePostcode": "NR3",  "baseLat": 52.645, "baseLng": 1.295 },
+  { "id": "tm-12", "name": "Ravi Patel",    "role": "installer", "town": "Leicester",   "basePostcode": "LE4",  "baseLat": 52.660, "baseLng": -1.120 },
+  { "id": "tm-13", "name": "Chris Hale",    "role": "surveyor",  "town": "Southampton", "basePostcode": "SO16", "baseLat": 50.935, "baseLng": -1.430 },
+  { "id": "tm-14", "name": "Owen Hughes",   "role": "installer", "town": "Chester",     "basePostcode": "CH2",  "baseLat": 53.205, "baseLng": -2.880 },
+  { "id": "tm-15", "name": "Ellie Grant",   "role": "installer", "town": "Cambridge",   "basePostcode": "CB4",  "baseLat": 52.225, "baseLng": 0.130 }
 ]

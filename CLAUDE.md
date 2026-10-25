@@ -17,3 +17,6 @@
   3. Always reuse the board's `fileKey` and replace the existing diagram node rather than adding a new one
 - FigJam board URL: https://www.figma.com/board/kATGd4IjgdBoLFgsWFreCd/TeamCoverage
 - FigJam fileKey: `kATGd4IjgdBoLFgsWFreCd` — reuse for all future diagrams
+
+## Git
+- Never commit or push. Leave changes uncommitted; I review and commit them myself.

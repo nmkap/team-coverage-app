@@ -7,6 +7,30 @@ A lightweight browser tool for booking field jobs against the right team. Select
 - HTML5 / CSS3 / Vanilla JavaScript (no framework, no build step)
 - [Leaflet](https://leafletjs.com/) for interactive maps
 - Hosted on **GitHub Pages** from the `main` branch root
+- [postcodes.io](https://postcodes.io/) for postcode lookup (free, no key)
+- [OSRM](https://project-osrm.org/) demo server for drive times and routes (free, no key, best-effort)
+- CARTO dark basemap when a key is set in `js/config.js`, otherwise darkened OpenStreetMap tiles
+
+## Project structure
+
+| File | Purpose |
+|---|---|
+| `js/app.js` | UI flow: role picker, postcode input, list, selection |
+| `js/postcode.js` | Postcode validation and lookup |
+| `js/distance.js` | Drive times and routes. Swap the provider here without touching the UI. Falls back to estimates if the service is down. |
+| `js/map.js` | Leaflet map, pins, route line, popup |
+| `js/config.js` | Map key and service URLs |
+| `data/teams.json` | Dummy team data |
+
+## Run locally
+
+The app uses ES modules, so open it through a local server rather than double-clicking `index.html`:
+
+```bash
+python3 -m http.server 8000
+```
+
+Then visit http://localhost:8000.
 
 ## Docs
 
