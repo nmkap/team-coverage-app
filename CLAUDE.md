@@ -15,4 +15,5 @@
   1. Load the `figma-generate-diagram` skill first
   2. Use the Figma MCP `generate_diagram` tool
   3. Always reuse the board's `fileKey` and replace the existing diagram node rather than adding a new one
-- FigJam board URL: _to be added after first render_
+- FigJam board URL: https://www.figma.com/board/kATGd4IjgdBoLFgsWFreCd/TeamCoverage
+- FigJam fileKey: `kATGd4IjgdBoLFgsWFreCd` — reuse for all future diagrams

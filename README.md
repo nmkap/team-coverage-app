@@ -11,4 +11,4 @@ A lightweight browser tool for booking field jobs against the right team. Select
 ## Docs
 
 - [User flow diagram](docs/user-flow.mmd) — Mermaid source
-- FigJam board: _URL to be added after diagram render_
+- [FigJam user flow board](https://www.figma.com/board/kATGd4IjgdBoLFgsWFreCd/TeamCoverage)
