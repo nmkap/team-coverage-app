@@ -1,6 +1,6 @@
 /* Team Coverage App – UI flow: pick role → enter postcode → nearest team highlighted. */
 import { isValidPostcode, normalisePostcode, lookupPostcode } from './postcode.js';
-import { getDriveTimes, getRoute, formatDuration } from './distance.js';
+import { getDriveTimes, getRoute, formatDuration, haversineMiles } from './distance.js';
 import { createMap, initials } from './map.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -29,7 +29,25 @@ const state = {
   activeId: null,
   searchId: 0,    // guards against out-of-order responses
 };
-const routeCache = new Map();
+const routeCache = new Map();    // "memberId|postcode" → road path
+const routeRequests = new Map(); // same key → in-flight request, so a route is only fetched once
+
+/** Fetch (once) and cache the road route for a member → customer journey. */
+function fetchRoute(member, customer) {
+  const key = `${member.id}|${customer.postcode}`;
+  if (routeCache.has(key)) return Promise.resolve(routeCache.get(key));
+  if (!routeRequests.has(key)) {
+    const req = getRoute({ lat: member.baseLat, lng: member.baseLng }, customer).then((path) => {
+      routeRequests.delete(key);
+      if (path) routeCache.set(key, path);
+      return path;
+    });
+    routeRequests.set(key, req);
+  }
+  return routeRequests.get(key);
+}
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const map = createMap($('#map'), { onPinClick: (id) => state.ranked && select(id, true) });
 
@@ -44,39 +62,81 @@ async function init() {
     console.error(err);
     return;
   }
-  const count = (r) => state.team.filter((m) => m.role === r || m.role === 'both').length;
-  ui.landingCount.innerHTML = `<span><b>${count('surveyor')}</b> surveyors</span><span><b>${count('installer')}</b> installers</span><span>UK-wide coverage</span>`;
+  renderStats();
+  map.showPreview(state.team);
   bindEvents();
 }
 
+/* ---------- Landing stats ---------- */
+function renderStats() {
+  const surveyors = state.team.filter((m) => m.role !== 'installer').length;
+  const installers = state.team.filter((m) => m.role !== 'surveyor').length;
+  ui.landingCount.innerHTML = `
+    <span class="stat" data-role="surveyor"><b data-to="${surveyors}">0</b> surveyors</span>
+    <span class="sep" aria-hidden="true"></span>
+    <span class="stat" data-role="installer"><b data-to="${installers}">0</b> installers</span>
+    <span class="sep" aria-hidden="true"></span>
+    <span class="live">UK-wide coverage</span>`;
+  countUp(ui.landingCount.querySelectorAll('b[data-to]'));
+}
+
+/** Numbers tick from 0 to their value over 900ms (ease-out cubic); jump straight there with reduced motion. */
+function countUp(els, duration = 900) {
+  const targets = [...els].map((el) => Number(el.dataset.to));
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    els.forEach((el, i) => { el.textContent = targets[i]; });
+    return;
+  }
+  const start = performance.now();
+  const tick = (now) => {
+    const t = Math.min((now - start) / duration, 1);
+    const eased = 1 - (1 - t) ** 3;
+    els.forEach((el, i) => { el.textContent = Math.round(targets[i] * eased); });
+    if (t < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
 function bindEvents() {
+  let revealTimer;
   document.querySelectorAll('.role-btn').forEach((btn) =>
     btn.addEventListener('click', () => {
       btn.classList.add('picked');
+      map.hidePreview();
       setRole(btn.dataset.role);
-      setTimeout(() => {
+      revealTimer = setTimeout(() => {
         ui.landing.classList.add('is-gone');
         document.body.classList.add('ready');
         ui.landing.setAttribute('aria-hidden', 'true');
-        setTimeout(() => { map.invalidate(); ui.input.focus(); }, 900);
+        revealTimer = setTimeout(() => {
+          if (state.customer) map.invalidate(); else map.refitAfterReveal();
+          ui.input.focus();
+        }, 900);
       }, 180);
     }),
   );
 
   document.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => setRole(b.dataset.role)));
 
+  let timer;
   ui.restart.addEventListener('click', () => {
+    clearTimeout(timer);
+    clearTimeout(revealTimer);
     document.querySelectorAll('.role-btn').forEach((b) => b.classList.remove('picked'));
     ui.landing.classList.remove('is-gone');
     ui.landing.removeAttribute('aria-hidden');
     document.body.classList.remove('ready');
     ui.input.value = '';
+    ui.field.classList.remove('valid');
     setHint('');
+    state.role = null; // before clearResult, which re-applies any role still set
     clearResult();
+    document.querySelectorAll('.seg button').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    ui.list.innerHTML = '';
+    map.showLanding(state.team);
     document.querySelector('.role-btn').focus();
   });
 
-  let timer;
   ui.input.addEventListener('input', () => {
     clearTimeout(timer);
     const value = ui.input.value.trim();
@@ -87,7 +147,7 @@ function bindEvents() {
       return;
     }
     setHint('');
-    timer = setTimeout(() => search(normalisePostcode(value)), 350);
+    timer = setTimeout(() => search(normalisePostcode(value)), 200);
   });
 }
 
@@ -128,10 +188,18 @@ async function search(postcode) {
   }
   ui.input.value = place.postcode;
   state.customer = place;
-  await rank(id);
+
+  // Start moving straight away towards the nearest member as the crow flies (usually the real
+  // nearest too), and fetch that road route while drive times load.
+  const guess = nearestByAir(place);
+  if (guess) {
+    map.focus(place, guess);
+    fetchRoute(guess, place);
+  }
+  await rank(id, true);
 }
 
-async function rank(id = ++state.searchId) {
+async function rank(id = ++state.searchId, fromSearch = false) {
   setLoading(true);
   const members = membersForRole();
   const { estimated, results } = await getDriveTimes(state.customer, members);
@@ -153,7 +221,22 @@ async function rank(id = ++state.searchId) {
     setHint('No one in this role can reach that postcode by road.', true);
     return;
   }
+  // After a new search, give the road route a moment so the line lands once instead of swapping mid-flight.
+  if (fromSearch) {
+    await Promise.race([fetchRoute(state.ranked[0], state.customer), wait(600)]);
+    if (id !== state.searchId) return;
+  }
   select(state.ranked[0].id, false);
+}
+
+function nearestByAir(place) {
+  let best = null;
+  let bestMiles = Infinity;
+  membersForRole().forEach((m) => {
+    const miles = haversineMiles(place, { lat: m.baseLat, lng: m.baseLng });
+    if (miles < bestMiles) { best = m; bestMiles = miles; }
+  });
+  return best;
 }
 
 /* ---------- Selection ---------- */
@@ -176,10 +259,8 @@ function select(id, fromUser) {
   });
 
   if (!routeCache.has(key)) {
-    getRoute({ lat: member.baseLat, lng: member.baseLng }, customer).then((path) => {
-      if (!path) return;
-      routeCache.set(key, path);
-      if (state.activeId === id && state.customer === customer) map.replaceRoute(path);
+    fetchRoute(member, customer).then((path) => {
+      if (path && state.activeId === id && state.customer === customer) map.replaceRoute(path);
     });
   }
 }

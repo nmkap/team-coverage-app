@@ -1,5 +1,5 @@
 /* Team Coverage App – styles
-   Layout: full-screen role picker that slides up to reveal a 380px list panel (left) + full-bleed map (right). */
+   Layout: full-bleed map behind everything. A transparent role picker fades away to reveal a floating 380px list panel. */
 
 :root {
   --bg: #0C0F13;
@@ -13,10 +13,15 @@
   --accent-ink: #1C1406;
   --accent-soft: rgba(244, 180, 69, 0.14);
   --danger: #F2786C;
+  --soft: #C9D1DB;             /* brighter secondary text (landing stats) */
+  --accent-hot: #FFC965;       /* brighter amber for the stat numbers */
 
-  --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --display: "Rubik", "Avenir Next", system-ui, sans-serif;
   --body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* One size drives the whole hero so the title and role buttons scale together */
+  --hero: clamp(36px, 4.8vw, 72px);
 
   --ease: cubic-bezier(0.77, 0, 0.18, 1);
   color-scheme: dark;
@@ -30,17 +35,28 @@ button, input { font: inherit; color: inherit; }
 
 /* ---------- Landing ---------- */
 .landing {
-  position: fixed; inset: 0; z-index: 1000;
+  position: fixed; inset: 0; z-index: 2000; /* above Leaflet controls (1000) */
   display: flex; flex-direction: column; justify-content: center;
   padding-block: 48px;
   padding-left: max(24px, 8vw); padding-right: max(24px, 8vw);
+  /* Scrim over the live map: heavy behind the text, lighter on the right so the UK shows through */
   background:
-    radial-gradient(60% 70% at 85% 30%, rgba(244, 180, 69, 0.10), transparent 70%),
-    repeating-radial-gradient(circle at 85% 30%, transparent 0 38px, rgba(233, 237, 242, 0.035) 38px 39px),
-    var(--bg);
-  transition: transform 0.9s var(--ease), visibility 0s;
+    radial-gradient(55% 65% at 75% 45%, rgba(244, 180, 69, 0.06), transparent 70%),
+    linear-gradient(90deg, rgba(12, 15, 19, 0.92) 0%, rgba(12, 15, 19, 0.82) 34%, rgba(12, 15, 19, 0.4) 62%, rgba(12, 15, 19, 0.2) 100%);
+  transition: opacity 0.8s var(--ease), visibility 0s;
 }
-.landing.is-gone { transform: translateY(-100%); visibility: hidden; transition: transform 0.9s var(--ease), visibility 0s 0.9s; }
+.landing > * { transition: transform 0.8s var(--ease), opacity 0.5s; }
+.landing.is-gone { opacity: 0; visibility: hidden; transition: opacity 0.8s var(--ease), visibility 0s 0.8s; }
+.landing.is-gone > * { transform: translateY(-24px); opacity: 0; }
+
+/* Push the map back while the landing is up, then "focus pull" on reveal */
+.leaflet-tile-pane { transition: filter 0.9s var(--ease); }
+body:not(.ready) .leaflet-tile-pane { filter: blur(1px) saturate(0.7); }
+
+/* App-only map UI stays hidden while the landing is up */
+.map-empty, .leaflet-control-zoom { transition: opacity 0.4s; }
+body:not(.ready) .map-empty, body:not(.ready) .leaflet-control-zoom { opacity: 0 !important; pointer-events: none; }
+
 .brand {
   position: absolute; top: 28px; left: max(24px, 8vw);
   display: flex; align-items: center; gap: 10px;
@@ -48,27 +64,78 @@ button, input { font: inherit; color: inherit; }
 }
 .brand-mark { width: 22px; height: 22px; border-radius: 6px; background: var(--accent); display: grid; place-items: center; }
 .brand-mark::after { content: ""; width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--accent-ink); }
+.hero { font-size: var(--hero); }
 .ask {
-  font: 800 clamp(40px, 7.2vw, 104px)/1.02 var(--display);
-  letter-spacing: -0.035em; margin: 0; max-width: 16ch; text-wrap: balance;
+  font: 700 1em/1.05 var(--display);
+  letter-spacing: -0.025em; margin: 0;
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 0.28em;
 }
-.ask .choices { display: inline-flex; flex-wrap: wrap; gap: 0.22em; vertical-align: baseline; }
+
+/* Thinking dots */
+/* Dots sit on the text baseline, like full stops */
+.thinking { display: inline-flex; gap: 0.13em; align-items: flex-end; vertical-align: baseline; }
+.thinking i {
+  width: 0.15em; height: 0.15em; border-radius: 50%; background: var(--accent);
+  opacity: 0;
+  animation: think-1 1.6s ease-out infinite;
+}
+.thinking i:nth-child(2) { animation-name: think-2; }
+.thinking i:nth-child(3) { animation-name: think-3; }
+/* Typing-style: dots appear left to right in place, hold, then all clear together */
+@keyframes think-1 {
+  0%, 5%    { opacity: 0; }
+  15%, 80%  { opacity: 1; box-shadow: 0 0 0.25em rgba(244, 180, 69, 0.7); }
+  92%, 100% { opacity: 0; }
+}
+@keyframes think-2 {
+  0%, 25%   { opacity: 0; }
+  35%, 80%  { opacity: 1; box-shadow: 0 0 0.25em rgba(244, 180, 69, 0.7); }
+  92%, 100% { opacity: 0; }
+}
+@keyframes think-3 {
+  0%, 45%   { opacity: 0; }
+  55%, 80%  { opacity: 1; box-shadow: 0 0 0.25em rgba(244, 180, 69, 0.7); }
+  92%, 100% { opacity: 0; }
+}
+
+.choices { display: flex; flex-wrap: wrap; gap: 0.3em; margin-top: 0.4em; }
 .role-btn {
-  font: inherit; letter-spacing: inherit; line-height: 1;
-  padding: 0.1em 0.38em 0.16em; border-radius: 0.22em;
+  font: 600 0.62em/1 var(--display); letter-spacing: -0.01em;
+  padding: 0.5em 0.95em 0.55em; border-radius: 0.38em;
   border: 2px solid var(--line); background: var(--raise); cursor: pointer;
   transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
 }
 .role-btn:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-3px); }
 .role-btn:active { transform: translateY(0); }
 .role-btn.picked { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.landing p { color: var(--muted); font-size: 17px; max-width: 46ch; margin: 28px 0 0; }
-.count { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-top: 40px; display: flex; gap: 24px; flex-wrap: wrap; }
-.count b { color: var(--fg); font-weight: 500; }
+.landing p { color: var(--muted); font-size: clamp(18px, 1.5vw, 21px); line-height: 1.5; max-width: 44ch; margin: 32px 0 0; }
+/* Team stats bar */
+.count {
+  font: 500 clamp(16px, 1.35vw, 19px) var(--mono); color: var(--soft);
+  display: flex; align-items: center; flex-wrap: wrap; gap: 14px 28px; margin-top: 44px;
+}
+.count .stat { display: inline-flex; align-items: baseline; gap: 10px; }
+.count b {
+  font: 700 1.6em/1 var(--mono); color: var(--accent-hot); font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 18px rgba(255, 201, 101, 0.35);
+}
+.count .sep { width: 5px; height: 5px; border-radius: 50%; background: var(--line); flex: none; }
+.count .live { display: inline-flex; align-items: center; gap: 10px; color: var(--fg); }
+.count .live::before {
+  content: ""; width: 9px; height: 9px; border-radius: 50%; background: #8EE3A1; flex: none;
+  animation: live-pulse 1.8s ease-out infinite;
+}
+@keyframes live-pulse {
+  from { box-shadow: 0 0 0 0 rgba(142, 227, 161, 0.6); }
+  to   { box-shadow: 0 0 0 9px rgba(142, 227, 161, 0); }
+}
 
 /* ---------- App shell ---------- */
-.app { height: 100%; display: grid; grid-template-columns: 380px 1fr; }
+/* The map is full-bleed and the panel floats over it, so the landing → app reveal never resizes the map */
+.app { height: 100%; }
 .panel {
+  position: fixed; top: 0; bottom: 0; left: 0; width: 380px; z-index: 1100;
+  box-shadow: 12px 0 40px rgba(0, 0, 0, 0.35);
   background: var(--panel); border-right: 1px solid var(--line);
   display: flex; flex-direction: column; min-height: 0; min-width: 0;
   transform: translateX(-24px); opacity: 0;
@@ -128,13 +195,16 @@ button, input { font: inherit; color: inherit; }
 .foot { margin: 0; padding: 12px 22px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); min-height: 44px; }
 
 /* ---------- Map ---------- */
-.map-wrap { position: relative; min-width: 0; }
+.map-wrap { position: fixed; inset: 0; }
 #map { position: absolute; inset: 0; background: #0B0E12; }
 .leaflet-container { font-family: var(--body); }
 .tiles-darkened { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.3); }
 .leaflet-control-attribution { background: rgba(12, 15, 19, 0.7) !important; color: var(--muted) !important; }
 .leaflet-control-attribution a { color: var(--muted) !important; }
 .leaflet-bar a { background: var(--panel) !important; color: var(--fg) !important; border-color: var(--line) !important; }
+
+/* Landing preview: every team member as a soft amber dot */
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(244, 180, 69, 0.18), 0 0 14px rgba(244, 180, 69, 0.6); }
 
 .pin {
   width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
@@ -159,7 +229,7 @@ button, input { font: inherit; color: inherit; }
 .pop-who span { font: 500 12px var(--mono); color: var(--accent); }
 
 .map-empty {
-  position: absolute; left: 50%; bottom: 32px; translate: -50% 0; z-index: 500;
+  position: absolute; left: calc(380px + (100% - 380px) / 2); bottom: 32px; translate: -50% 0; z-index: 500;
   background: rgba(18, 22, 28, 0.9); border: 1px solid var(--line); padding: 10px 16px; border-radius: 999px;
   font-size: 14px; color: var(--muted); pointer-events: none; white-space: nowrap;
 }
@@ -167,13 +237,18 @@ button, input { font: inherit; color: inherit; }
 /* ---------- Small screens ---------- */
 @media (max-width: 760px) {
   body { overflow: auto; }
-  .app { grid-template-columns: 1fr; height: auto; min-height: 100%; }
-  .map-wrap { order: -1; height: 46vh; }
-  .panel { border-right: 0; }
+  .app { display: flex; flex-direction: column; height: auto; min-height: 100%; }
+  .map-wrap { position: relative; inset: auto; order: -1; height: 46vh; flex: none; }
+  body:not(.ready) .map-wrap { position: fixed; inset: 0; height: auto; }
+  .panel { position: static; width: auto; box-shadow: none; border-right: 0; }
   .list { overflow: visible; }
-  .map-empty { white-space: normal; width: max-content; max-width: calc(100% - 32px); text-align: center; }
+  .landing { background: linear-gradient(180deg, rgba(12, 15, 19, 0.6) 0%, rgba(12, 15, 19, 0.88) 45%, rgba(12, 15, 19, 0.95) 100%); }
+  .map-empty { left: 50%; white-space: normal; width: max-content; max-width: calc(100% - 32px); text-align: center; }
+  .role-btn { font-size: 0.7em; }
+  .count .sep { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation: none !important; }
+  .thinking i { opacity: 0.8; }
 }

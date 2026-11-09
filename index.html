@@ -7,7 +7,7 @@
   <meta name="description" content="Find the nearest installer or surveyor to a customer's postcode." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
@@ -16,12 +16,15 @@
   <!-- Step 1: role picker -->
   <section class="landing" id="landing" aria-labelledby="ask">
     <div class="brand"><span class="brand-mark" aria-hidden="true"></span>Team Coverage</div>
-    <h1 class="ask" id="ask">I'm looking for a
-      <span class="choices">
+    <div class="hero">
+      <h1 class="ask" id="ask">I'm looking for a
+        <span class="thinking" aria-hidden="true"><i></i><i></i><i></i></span>
+      </h1>
+      <div class="choices" role="group" aria-label="Choose a role">
         <button class="role-btn" data-role="surveyor">Surveyor</button>
         <button class="role-btn" data-role="installer">Installer</button>
-      </span>
-    </h1>
+      </div>
+    </div>
     <p>Pick a role, then enter the customer's postcode to see who's closest.</p>
     <div class="count" id="landing-count"></div>
   </section>
